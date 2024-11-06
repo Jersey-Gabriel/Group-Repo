@@ -1,0 +1,92 @@
+---
+title: "RWorksheet_Subosa#5.Rmd"
+author: "Gian Adree Subosa"
+date: "2024-11-05"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(rvest)
+library(httr)
+library(dplyr)
+library(polite)
+```
+
+```{r}
+polite::use_manners(save_as = 'polite_scrape.R')
+```
+
+```{r}
+url <- 'https://www.imdb.com/list/ls062589158/'
+
+session <- bow(url, user_agent = "Educational")
+session
+```
+
+```{r}
+rank_title <- character(0)
+links <- character(0)
+```
+
+```{r}
+title_list <- scrape(session) %>%
+    html_nodes('h3.ipc-title__text') %>%
+    html_text
+```
+
+```{r}
+class(title_list)
+```
+
+```{r}
+title_list_sub <- as.data.frame(title_list[1:50])
+title_list_sub <- as.data.frame(title_list[26:50])
+
+title_list_sub
+```
+
+```{r}
+tail(title_list_sub)
+```
+
+```{r}
+colnames(title_list_sub) <- "ranks"
+
+split_df <- strsplit(as.character(title_list_sub$ranks), ".", fixed = TRUE)
+
+split_df <- data.frame(do.call(rbind, split_df))
+```
+
+```{r}
+split_df <- split_df[-c(3:4)]
+
+colnames(split_df) <- c("Rank", "Title")
+
+str(split_df)
+```
+
+```{r}
+class(split_df)
+```
+
+```{r}
+head(split_df)
+```
+
+```{r}
+rank_title <- data.frame(rank_title = split_df)
+
+write.csv(rank_title, file = "title.csv")
+```
+
+```{r}
+link_list <- scrape(session) %>%
+  html_nodes('a.ipc-title-link-wrapper') %>%
+  html_attr('href')
+
+head(link_list)
+```
