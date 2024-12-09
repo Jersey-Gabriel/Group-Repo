@@ -1,0 +1,389 @@
+---
+title: "RWorksheet#5_group(Alpanghe, Arlante, Subosa).Rmd"
+author: "Jersey Gabriel Alpanghe, Stephanie Lois Amber Arlante, Gian Adree Subosa"
+date: "2024-11-05"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+IMDB Top TV Shows
+```{r}
+library(rvest)
+library(dplyr)
+library(stringr)
+library(polite)
+library(kableExtra)
+library(knitr)
+library(tidyverse)
+```
+
+```{r}
+url_imdb = "https://www.imdb.com/chart/toptv/"
+web = read_html(url_imdb)
+
+session <- bow(link, user_agent = "Educational") 
+session
+```
+
+```{r}
+title <- web %>% 
+  html_nodes(".ipc-title__text") %>%
+  html_text()
+
+title_list <- title[!grepl("Top 250 TV Shows|IMDb Charts|Recently viewed|More to explore", title, ignore.case = TRUE)]
+
+title_list
+```
+
+```{r}
+rank <- str_extract(title_list, "^\\d+\\.")
+rank
+```
+
+```{r}
+title_name <- str_replace(title_list, "^\\d+\\.", "")
+title_name
+```
+
+```{r}
+year_scrp <- web %>% 
+  html_nodes(".sc-5bc66c50-6.OOdsw.cli-title-metadata-item") %>% 
+  html_text()
+
+year <- str_extract_all(yea, "\\b\\d{4}(?:–\\d{4})?\\b") %>% 
+  unlist()
+year
+```
+
+```{r}
+rating <- web %>% 
+  html_nodes(".ipc-rating-star--rating") %>%
+  html_text()
+
+rating
+```
+
+```{r}
+episode <- web %>% 
+  html_nodes(".sc-5bc66c50-6.OOdsw.cli-title-metadata-item") %>%
+  html_text()
+
+episode_scrp <- str_extract_all(episode, "\\b\\d+ eps\\b") %>% 
+  unlist()
+episode_scrp
+```
+
+```{r}
+vote <- web %>% 
+  html_nodes(".ipc-rating-star--voteCount") %>% 
+  html_text()
+vote
+```
+
+```{r}
+url_top_50 <- c("https://www.imdb.com/title/tt0903747/?ref_=chttvtp_i_1", 
+          "https://www.imdb.com/title/tt5491994/?ref_=chttvtp_i_2",
+          "https://www.imdb.com/title/tt0795176/?ref_=chttvtp_i_3",
+          "https://www.imdb.com/title/tt0185906/?ref_=chttvtp_i_4",
+          "https://www.imdb.com/title/tt7366338/?ref_=chttvtp_i_5",
+          "https://www.imdb.com/title/tt0306414/?ref_=chttvtp_i_6",
+          "https://www.imdb.com/title/tt0417299/?ref_=chttvtp_i_7",
+          "https://www.imdb.com/title/tt6769208/?ref_=chttvtp_i_8",
+          "https://www.imdb.com/title/tt0141842/?ref_=chttvtp_i_9",
+          "https://www.imdb.com/title/tt2395695/?ref_=chttvtp_i_10",
+          "https://www.imdb.com/title/tt0081846/?ref_=chttvtp_i_11",
+          "https://www.imdb.com/title/tt9253866/?ref_=chttvtp_i_12",
+          "https://www.imdb.com/title/tt0944947/?ref_=chttvtp_i_13",
+          "https://www.imdb.com/title/tt7678620/?ref_=chttvtp_i_14",
+          "https://www.imdb.com/title/tt0071075/?ref_=chttvtp_i_15",
+          "https://www.imdb.com/title/tt1355642/?ref_=chttvtp_i_16",
+          "https://www.imdb.com/title/tt2861424/?ref_=chttvtp_i_17",
+          "https://www.imdb.com/title/tt1533395/?ref_=chttvtp_i_18",
+          "https://www.imdb.com/title/tt8420184/?ref_=chttvtp_i_19",
+          "https://www.imdb.com/title/tt0052520/?ref_=chttvtp_i_20",
+          "https://www.imdb.com/title/tt1877514/?ref_=chttvtp_i_21",
+          "https://www.imdb.com/title/tt1475582/?ref_=chttvtp_i_22",
+          "https://www.imdb.com/title/tt2560140/?ref_=chttvtp_i_23",
+          "https://www.imdb.com/title/tt0103359/?ref_=chttvtp_i_24",
+          "https://www.imdb.com/title/tt0386676/?ref_=chttvtp_i_25")
+
+user_reviews <- vector("numeric", length(url_top_50))
+critic_reviews <- vector("numeric", length(url_top_50))
+popularity <- vector("numeric", length(url_top_50))
+```
+
+```{r}
+for (i in seq_along(url_top_50)) {
+session <- bow(url_top_50[i], user_agent = "Educational")
+website_scrp <- scrape(session)
+  
+popularity_text <- website_scrp %>% 
+    html_nodes(".sc-39d285cf-1.dxqvqi") %>% 
+    html_text()
+  popularity[i] <- as.numeric(gsub(",", "", popularity_text[1]))
+  
+reviewing <- website_scrp %>% 
+    html_nodes(".score") %>% 
+    html_text()
+  
+if (length(reviewing) >= 2) {
+    user_reviews[i] <- ifelse(grepl("K", reviewz[1]), 
+                              as.numeric(gsub("K", "", reviewz[1])) * 1000, 
+                              as.numeric(reviewz[1]))
+    critic_reviews[i] <- as.numeric(reviewz[2])
+  } else {
+    user_reviews[i] <- NA
+    critic_reviews[i] <- NA
+  }
+}
+```
+
+```{r}
+print(user_reviews)
+print(critic_reviews)
+print(popularity)
+```
+
+```{r}
+max_length <- max(length(rank), length(title), length(year), length(rating), length(episodes), length(vote))
+
+rank <- c(rank, rep(NA, max_length - length(rank)))
+
+title <- c(title_name, rep(NA, max_length - length(title_name)))
+
+year <- c(year, rep(NA, max_length - length(year)))
+
+rating <- c(rating, rep(NA, max_length - length(rating)))
+
+episodes <- c(episode_scrp, rep(NA, max_length - length(episode_scrp)))
+
+vote <- c(vote, rep(NA, max_length - length(vote)))
+
+user_reviews <- c(user_reviews, rep(NA, max_length - length(user_reviews)))
+
+critic_reviews <- c(critic_reviews, rep(NA, max_length - length(critic_reviews)))
+
+popularity <- c(popularity, rep(NA, max_length - length(popularity)))
+
+max_length
+```
+```{r}
+movies <- data.frame(rank, title, year, rating, episodes, vote, user_reviews, critic_reviews, popularity, stringsAsFactors = FALSE)
+write.csv(movies, "movies.csv")
+print(head(movies))
+```
+```{r}
+movies %>%
+  kable("latex", booktabs = TRUE) %>%
+  kable_styling(latex_options = "scale_down")
+```
+```{r}
+review_tv <- c("https://www.imdb.com/title/tt0903747/reviews/?ref_=tt_ov_ql_2", 
+        "https://www.imdb.com/title/tt5491994/reviews/?ref_=tt_ov_ql_2",
+        "https://www.imdb.com/title/tt0795176/reviews/?ref_=tt_ov_ql_2",
+        "https://www.imdb.com/title/tt0185906/reviews/?ref_=tt_ov_ql_2",
+        "https://www.imdb.com/title/tt7366338/reviews/?ref_=tt_ov_ql_2")
+
+name <- vector("list", length(review_tv))
+date_of_review <- vector("list", length(review_tv))
+user_ratings <- vector("list", length(review_tv))
+title_of_review <- vector("list", length(review_tv))
+is_helpful <- vector("list", length(review_tv))
+is_not_helpful <- vector("list", length(review_tv))
+text_review <- vector("list", length(review_tv))
+```
+```{r}
+for (i in seq_along(review_tv)) {
+session <- bow(review_tv[i], user_agent = "Educational")
+website_scrp <- scrape(session)
+
+namez <- website_scrp %>% 
+    html_nodes(".ipc-link.ipc-link--base") %>% 
+    html_text(trim = TRUE) %>% 
+    head(40)
+name[[i]] <- namez[!grepl("Permalink", namez, ignore.case = TRUE)]
+  
+date_of_review[[i]] <- website_scrp %>% 
+  html_nodes(".ipc-inline-list__item.review-date") %>%
+  html_text(trim = TRUE) %>% 
+  head(20)
+
+user_ratings[[i]] <- website_scrp %>%
+  html_nodes(".ipc-rating-star--rating") %>% 
+  html_text(trim = TRUE) %>%
+  head(20)
+  
+  title_of <- website_scrp %>%
+    html_nodes(".ipc-title__text") %>% 
+    html_text(trim = TRUE) %>% 
+    head(21)
+  title_of_review[[i]] <- title_of[!grepl("User reviews|More from this title|More to explore|Recently viewed" , title_of, ignore.case = TRUE)]
+  
+  text_review[[i]] <- website_scrp %>% 
+    html_nodes(".ipc-html-content-inner-div") %>%
+    html_text(trim = TRUE) %>% 
+    head(20)
+}
+```
+```{r}
+BreakingBad <- data.frame(name[[1]],
+  Date = date_of_review[[1]],
+  Rating = user_ratings[[1]],
+  Title = title_of_review[[1]],
+  stringAsFactors = FALSE
+)
+write.csv(BreakingBad, "Breaking_Bad_reviews.csv")
+print(head(BreakingBad))
+```
+```{r}
+BreakingBad %>%
+  kable("latex", booktabs = TRUE) %>%
+  kable_styling(latex_options = "scale_down")
+```
+```{r}
+PlanetEarthII <- data.frame(name[[2]],
+  Date = date_of_review[[2]],
+  Rating = user_ratings[[2]],
+  Title = title_of_review[[2]],
+  stringAsFactors = FALSE
+)
+write.csv(PlanetEarthII, "PlanetEarthII_reviews.csv")
+print(head(PlanetEarthII))
+```
+```{r}
+PlanetEarthII %>%
+  kable("latex", booktabs = TRUE) %>%
+  kable_styling(latex_options = "scale_down")
+```
+2. Extracting Amazon Product Reviews
+```{r}
+#4. URLs
+urls <- c('https://www.amazon.com/s?k=backpacks&crid=35ZQ1H72MC3G9&sprefix=backpacks%2Caps%2C590&ref=nb_sb_ss_ts-doa-p_3_9', 
+          'https://www.amazon.com/s?k=laptops&crid=L7MQBW7MD4SX&sprefix=laptopb%2Caps%2C1304&ref=nb_sb_noss_2',
+          'https://www.amazon.com/s?k=phone+case&dc&crid=1VPDCJ87S93TL&sprefix=phone+cas%2Caps%2C451&ref=a9_asc_1',
+          'https://www.amazon.com/s?k=mountain+bike&crid=1ZQR71S8XHZN6&sprefix=mountain+bik%2Caps%2C499&ref=nb_sb_noss_2',
+          'https://www.amazon.com/s?k=tshirt&crid=2RQIP7MP6IYAW&sprefix=tshirt%2Caps%2C443&ref=nb_sb_noss_2')
+```
+
+```{r}
+#5
+df <- list()
+
+for (i in seq_along(urls)) {
+  
+    session <- bow(urls[i], user_agent = "Educational")
+  
+  product_name <- scrape(session) %>%
+    html_nodes('h2.a-size-mini') %>% 
+    html_text() %>%
+    head(30) 
+
+  
+  product_description <- scrape(session) %>%
+    html_nodes('div.productDescription') %>% 
+    html_text() %>%
+    head(30) 
+  
+
+  product_rating <- scrape(session) %>%
+    html_nodes('span.a-icon-alt') %>% 
+    html_text() %>%
+    head(30)  
+  ratings <- as.numeric(str_extract(product_rating, "\\d+\\.\\d"))
+  
+  
+  product_price <- scrape(session) %>%
+    html_nodes('span.a-price') %>% 
+    html_text() %>%
+    head(30) 
+  price <- as.numeric(str_extract(product_price, "\\d+\\.\\d+"))
+  
+  
+  product_review <- scrape(session) %>%
+    html_nodes('div.review-text-content') %>% 
+    html_text() %>%
+    head(30)  
+  
+  
+  dfTemp <- data.frame(Product_Name = product_name[1:30],
+                       Description = product_description[1:30],
+                       Rating = ratings[1:30],
+                       Price = price[1:30],
+                       stringsAsFactors = FALSE)
+  
+  df[[i]] <- dfTemp
+}
+
+print(df[[1]])
+print(df[[2]])
+print(df[[3]])
+print(df[[4]])
+print(df[[5]])
+```
+
+```{r}
+#8
+combined_df <- do.call(rbind, df)
+combined_df$Category <- rep(c("Backpacks", "Laptops", "Phone Cases", "Mountain Bikes", "T-Shirts"), each = 30)
+
+avg_rating <- combined_df %>%
+  group_by(Category) %>%
+  summarize(Average_Rating = mean(Rating, na.rm = TRUE))
+
+ggplot(avg_rating, aes(x = Category, y = Average_Rating, fill = Category)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Average Rating per Category", x = "Category", y = "Average Rating") +
+  theme_minimal()
+
+avg_price <- combined_df %>%
+  group_by(Category) %>%
+  summarize(Average_Price = mean(Price, na.rm = TRUE))
+
+ggplot(avg_price, aes(x = Category, y = Average_Price, fill = Category)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Average Price per Category", x = "Category", y = "Average Price") +
+  theme_minimal()
+
+ggplot(combined_df, aes(x = Price, y = Rating, color = Category)) +
+  geom_point() +
+  labs(title = "Price vs Rating Across Categories", x = "Price", y = "Rating") +
+  theme_minimal()
+```
+
+```{r}
+#9
+ggplot(combined_df, aes(x = Category, y = Rating, fill = Category)) +
+  geom_boxplot() +
+  labs(title = "Distribution of Ratings by Category", x = "Category", y = "Rating") +
+  theme_minimal()
+
+ggplot(combined_df, aes(x = Category, y = Price, fill = Category)) +
+  geom_boxplot() +
+  labs(title = "Distribution of Prices by Category", x = "Category", y = "Price") +
+  theme_minimal()
+```
+
+```{r}
+#10
+ranked_data <- lapply(df, function(df_category) {
+  df_category %>%
+    arrange(desc(Rating), Price) %>%
+    mutate(Rank = row_number()) %>%
+    select(Rank, everything()) 
+})
+
+categories <- c("Backpacks", "Laptops", "Phone Cases", "Mountain Bikes", "T-Shirts")
+for (i in seq_along(ranked_data)) {
+  ranked_data[[i]]$Category <- categories[i]
+}
+
+ranked_combined_df <- do.call(rbind, ranked_data)
+ranked_combined_df <- ranked_combined_df %>% 
+  arrange(Category, Rank) %>% 
+  group_by(Category) %>% 
+  slice(1:5) 
+
+print(ranked_combined_df)
+```
