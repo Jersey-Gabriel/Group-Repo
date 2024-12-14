@@ -1,0 +1,173 @@
+---
+title: "SystemAnalytics"
+author: "Alpanghe, Arlante, Subosa"
+date: "2024-12-09"
+output: pdf_document
+---
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(stringr)
+library(lubridate)
+
+# Read the CSV file
+tweetsDF <- read.csv("tweetsDF.csv", stringsAsFactors = FALSE)
+```
+
+```{r}
+tweetsDF$text <- iconv(tweetsDF$text, from = "UTF-8", to = "ASCII//TRANSLIT", sub = "")
+
+keywords <- "\\b(blackpink|yg|bornpink|lisa|jennie|rose|jisoo)\\b|:\\(\\(|&amp;|!|:\\(|&lt;/3|:|&lt;|/|~|iphone|android|nody_meow,|rogue_corq,|apobang27095028,|dessouslevide,|junacrawf0rd,|idkaybictdie,|lhcwesq4iebpbzf,|bpbiggestggindw,|lovemyhead,|akinsolaaliu,|nhlandmlb_fan,|virgini47003223,|angelscrown_,|stacebu,|starlight_sasha,|yuna4lifer,|diandianwong,|dillikahoshi,|tomie_jpg,|biyulving,|jshms9|1ov,|run_pjm,|lae__loner,|ariana_n64,|hdragees,|leemandelo,|purpleocean_i,|wildcatalum,|koreankrueger,|straykldswoo,|siang_ping,|lovemyheadwrap,|nyeongive,|cryptocross0ver|reexrco,|clarefl96567112,|wsbt,|killugoners,|maimechantel,|thealexateam,|ttaesthicx,|juliana62208602,|sadfuk99,|the_inspi,|hyckgasm,|hooriapashaa,|seungri_italy,|rawmilklvr,|laurettaland,|amaarzahid,|andiroo_,|__borntoslay_,|gothwolfjk,|3bbbinlove,|globalmyeon,|tianz17,|2korad,|doncastor4,|lesbi,|yolanda71545557,|mochixjm,|nunupaws,|simoncropp,|aoife,|btsvoque,|jeongpark52,|cloudychiwoo,|kaiewitherloavc,|yerimlvs,|mochixjm1,|tear_ofgod,|frothfather,|moatybuns,|richiericil,|maggiemae2019,|ckyunstd,|cyborgslament,|hyukasplush,|cxcileyyyy,|jungwoohehet,|lostinminhyuk,|crazyemio,|cbsaustin,|backtobleuside,|arches_in,|shelleypowers,|christineirishg,|bubblephehe,|minsmitten,|kaysfalling,|verrerenebi,|ntm23,|auroraluvbot,|my_drama_list,|kindordie,|kaede_zen,|luvskeehoo,"
+```
+
+```{r}
+tweetsDF$text <- tolower(tweetsDF$text)
+tweetsDF$text <- gsub("https\\S+", "", tweetsDF$text)
+tweetsDF$text <- gsub("#", "", gsub("\n", " ", tweetsDF$text))
+tweetsDF$text <- gsub("([@?]\\S+)", "", tweetsDF$text)
+tweetsDF$text <- gsub("\\?", "", tweetsDF$text)
+tweetsDF$text <- gsub("\\b\\d{2}\\.\\d{2}\\.\\d{4}\\b", "", tweetsDF$text)
+tweetsDF$text <- gsub(keywords, "", tweetsDF$text, ignore.case = TRUE)
+tweetsDF$text <- gsub("<a href=httptwitter.comdownloadiphone rel=nofollow>twitter for iphone<a>", "", tweetsDF$text)
+tweetsDF$text <- gsub("<a href=([^>]*?) rel=nofollow>([^<]*?)<a>", "", tweetsDF$text)
+tweetsDF$text <- gsub("<a href=httptwitter.comdownloadandroid rel=nofollow>twitter for android<a>", "", tweetsDF$text)
+tweetsDF$text <- gsub("<a href= rel=nofollow>twitter web app<a>", "", tweetsDF$text)
+tweetsDF$text <- gsub("30102022", "", tweetsDF$text)
+tweetsDF$text <- gsub("\\s+", " ", tweetsDF$text)
+```
+
+```{r}
+create_chunks <- function(df, start_row, end_row) {
+return(df[start_row:end_row, ])
+}
+
+start_row <- 1
+end_row <- 1000
+chunk_data <- tweetsDF[start_row:end_row, ]
+
+print(tweetsDF)
+```
+
+```{r}
+# Clean the "tweetSource" column
+tweetsDF$tweetSource <- tolower(tweetsDF$tweetSource) %>%
+  str_remove_all("ifttt|dlvr.it|South Korea|JOHN YOON|Seoul") %>%  # Remove irrelevant characters
+  gsub("<a href=httptwitter.comdownloadiphone rel=nofollow>twitter for iphone<a>", "", .) %>%
+  gsub("<a href=([^>]*?) rel=nofollow>([^<]*?)<a>", "", .) %>%
+  gsub("<a href=httptwitter.comdownloadandroid rel=nofollow>twitter for android<a>", "", .) %>%
+  gsub("<a href= rel=nofollow>twitter web app<a>", "", .) %>%
+  
+  str_squish()  # Remove any remaining blanks
+
+```
+
+```{r}
+# Check for invalid UTF-8 characters and convert to valid UTF-8
+tweetsDF$created <- iconv(tweetsDF$created, from = "UTF-8", to = "UTF-8", sub = "byte")
+tweetsDF$Created_At_Round <- iconv(tweetsDF$Created_At_Round, from = "UTF-8", to = "UTF-8", sub = "byte")
+
+```
+
+```{r}
+tweetsDF$created_time <- str_extract(tweetsDF$Created_At_Round, "\\d{2}:\\d{2}:\\d{2}")
+
+# Convert to POSIXct format
+tweetsDF$created_time <- as.POSIXct(tweetsDF$created_time, format = "%H:%M:%S")
+```
+
+```{r}
+
+tweets_df$created <- parse_date_time(tweets_df$created, orders = c("ymd HMS", "mdy HMS", "dmy HMS"), tz = "UTC")
+tweets_df$Created_At_Round <- parse_date_time(tweets_df$Created_At_Round, orders = c("ymd HMS", "mdy HMS", "dmy HMS"), tz = "UTC")
+```
+
+```{r}
+# ... your existing code up to cleaning the "tweetSource" column ...
+
+# Extract the time part using regular expression (adjust the pattern as needed)
+tweetsDF$created <- str_extract(tweetsDF$created, "\\d{2}:\\d{2}:\\d{2}")
+
+
+# Convert to POSIXct format
+tweetsDF$created <- as.POSIXct(tweetsDF$created, format = "%H:%M:%S")
+
+```
+
+```{r}
+# Step 8: Add derived columns (e.g., tweet length)
+tweetsDF$tweetLength <- nchar(tweetsDF$text)
+
+# Step 9: Verify the cleaned dataset
+str(tweets_df)
+summary(tweets_df)
+
+# Step 10: Final cleaned data output
+write.csv(tweets_df, "cleaned_tweetsDF.csv", row.names = FALSE)
+```
+
+```{r}
+print(tweetsDF)
+```
+
+#Visualization
+
+```{r}
+library(ggplot2)
+ggplot(tweetsDF, aes(x = created, y = tweetLength)) +
+geom_point(color = "black", alpha = 0.5) +
+labs(title = "Scatter Plot: Tweet Length Over Time",
+x = "Date Created",
+y = "Tweet Length (Number of Characters)") +
+theme_minimal()
+
+#The scatter plot shows that tweet lengths are consistently distributed over time, with most #tweets clustering near the upper character limit (140–280 characters). A few outliers with #very short tweet lengths are also visible, likely representing brief or automated messages. #No clear trend or variation in tweet length over time is apparent from the current #visualization.
+```
+
+```{r}
+# Count the top 10 tweet sources
+top_sources <- tweetsDF %>%
+count(tweetSource, sort = TRUE) %>%
+top_n(10, wt = n)
+
+# Bar plot
+ggplot(top_sources, aes(x = reorder(tweetSource, n), y = n, fill = tweetSource)) +
+geom_bar(stat = "identity") + # Use stat = "identity" since y values are precomputed
+coord_flip() + # Horizontal bars
+labs(title = "Top 10 Tweet Sources",
+x = "Tweet Source",
+y = "Number of Tweets") +
+theme_minimal() +
+scale_fill_brewer(palette = "Set3", guide = "none")
+
+#The bar chart shows the top 10 sources of tweets, with "iPhone" and "Android" being the most #common platforms, contributing significantly more tweets than other sources. "Others" also #accounts for a notable number of tweets, while smaller sources like "iPad," "IFTTT," and #"dlvr.it" have minimal contributions. This suggests that mobile devices dominate tweet #generation, with iPhone slightly surpassing Android in usage.
+```
+
+```{r}
+
+
+# Line graph
+ggplot(tweetsDF, aes(x = created_time, y = tweetLength)) +
+  geom_line(color = "darkred", size = 0.5) +
+  labs(title = "Line Graph: Number of Tweets Over Time",
+       x = "Date",
+       y = "Number of Tweets") +
+  theme_minimal()
+
+#The bar graph depicts a positive linear trend in the number of tweets over time.
+#The number of tweets significantly increased between October 28th and October 29th.
+#The number of tweets continued to increase at a slower rate from October 29th to October #30th.
+```
+
+```{r}
+# Histogram
+ggplot(tweetsDF, aes(x = tweetLength)) +
+  geom_histogram(binwidth = 5, fill = "blue", color = "black") +
+  labs(title = "Distribution of Tweet Lengths",
+       x = "Tweet Length",
+       y = "Frequency")
+
+#The histogram shows the distribution of tweet lengths, with the x-axis representing #the tweet length in characters and the y-axis representing the frequency of tweets of #that length.
+#The majority of tweets have a length between 50 and 100 characters, with the peak #frequency occurring between 100 and 125 characters.
+#There is a smaller peak in the frequency between 0 and 25 characters, and a very #small number of tweets have lengths greater than 125 characters.
+```
