@@ -320,8 +320,8 @@ product_urls <- c('https://www.amazon.com/MSI-GeForce-RTX-3060-12G/dp/B08WPRMVWB
 'https://www.amazon.com/ASUS-Graphics-DisplayPort-Axial-tech-Technology/dp/B0C7FNSHMQ/',
 'https://www.amazon.com/SURALLOW-Graphics-2048SP-Computer-Ports%EF%BC%88Style/dp/B0CMD6L4CJ/','https://www.amazon.com/Graphics-1000MHz-DirectX-Computer-Accessories/dp/B0BN6PF3NR/'
 )
-```
-```{r}
+
+
 scrape_reviews <- function(url) {
 session <- bow(url, user_agent = "Educational")
 review_page <- scrape(session)
@@ -391,6 +391,8 @@ reviews_df <- bind_rows(all_reviews)
 print(reviews_df)
 ```
 
+
+
 ```{r}
 #2
 product_urls <- c ('https://www.amazon.com/Amazon-Basics-Compatible-Adaptive-Response/dp/B0CP7TNX8C/', 
@@ -403,8 +405,7 @@ product_urls <- c ('https://www.amazon.com/Amazon-Basics-Compatible-Adaptive-Res
 'https://www.amazon.com/SAMSUNG-ViewFinity-Ultra-WQHD-Borderless-LS34C502GANXZA/dp/B0C1KPXPM9/',
 'https://www.amazon.com/Sceptre-E205W-16003R-Frameless-Speakers-Metallic/dp/B07743412C/',
 'https://www.amazon.com/Sceptre-30-inch-Curved-Gaming-Monitor/dp/B07TXM7K4T/')
-```
-```{r}
+
 scrape_reviews <- function(url) {
 session <- bow(url, user_agent = "Educational")
 review_page <- scrape(session)
@@ -562,8 +563,7 @@ print(reviews_df)
 ```{r}
 #4
 product_urls <- c("https://www.amazon.com/NZXT-CC-H61FW-01-Dual-Chamber-High-Performance-Management/dp/B0C89G9QDK/", "https://www.amazon.com/PCCOOLER-C3D310-Computer-Superior-Radiator/dp/B0CY2LDLZX/", "https://www.amazon.com/Corsair-4000D-Airflow-Tempered-Mid-Tower/dp/B08C7BGV3D/", "https://www.amazon.com/NZXT-Flow-Compact-Mid-Tower-Gaming/dp/B0B6Y15C5L/", "https://www.amazon.com/Airflow-Support-Mini-ITX-USB3-0x1-USB2-0x1I/dp/B0DFY9ZJGM/", "https://www.amazon.com/Cooler-Master-Transparent-Adjustable-Ventilated/dp/B0785GRMPG/", "https://www.amazon.com/DARKROCK-Supports-Graphics-Tempered-Pre-Installed/dp/B0D4QVMBTP/", "https://www.amazon.com/Okinos-Pre-Installed-Computer-Panoramic-Tempered/dp/B0CSYKJZJX/", "https://www.amazon.com/Antec-C5-ARGB-Simultaneously-Mid-Tower/dp/B0CWTPC32W/", "https://www.amazon.com/Sevenhero-EMBL-Radiator-Tempered-Panoramic/dp/B0CRZC28HR/")
-```
-```{r}
+
 scrape_reviews <- function(url) {
 session <- bow(url, user_agent = "Educational")
 review_page <- scrape(session)
@@ -636,6 +636,7 @@ print(reviews_df)
 
 
 ```{r}
+#5
 product_urls <- c("https://www.amazon.com/SRESNAIL-Windows-Desktop-Computer-Ethernet/dp/B0DJ8Q8D3W/", "https://www.amazon.com/CyberGeek-J1-Quad-Core-3200MHz-Computer/dp/B0C6NP7Z8W/", "https://www.amazon.com/AMD-5700X-16-Thread-Unlocked-Processor/dp/B09VCHQHZ6/", "https://www.amazon.com/AMD-5500-12-Thread-Unlocked-Processor/dp/B09VCJ171S/", "https://www.amazon.com/AMD-Ryzen-5700X3D-16-Thread-Processor/dp/B0CQ4H4H7X/", "https://www.amazon.com/i7-14700K-Desktop-Processor-Integrated-Graphics/dp/B0CGJ41C9W/", 
 "https://www.amazon.com/NUC12WSHi7-Computer-i7-1260P-Graphics-1TB/dp/B0BJDRK51K/", 
 "https://www.amazon.com/AMD-Ryzen-5900X-24-Thread-Processor/dp/B08164VTWH/", "https://www.amazon.com/Intel-i9-12900KF-Desktop-Processor-Unlocked/dp/B09FWYK5M9/", 
