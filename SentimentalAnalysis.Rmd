@@ -1,0 +1,189 @@
+---
+title: "SystemAnalytics"
+author: "Alpanghe, Arlante, Subosa"
+date: "2024-12-09"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Load necessary libraries
+library(tidyverse)
+library(lubridate)
+
+# Step 1: Load the dataset
+tweets_df <- read.csv("tweetsDF.csv", encoding = "ISO-8859-1")
+
+# Step 2: Inspect the column names and structure
+colnames(tweets_df) # Check column names
+str(tweets_df) # Check data structure
+```
+
+```{r}
+# Step 3: Check problematic rows in 'created' and 'Created_At_Round'
+# Inspect a sample of the 'created' column
+head(tweets_df$created, 20)
+head(tweets_df$Created_At_Round, 20)
+```
+
+```{r}
+# Step 4: Fix encoding issues in 'created' column
+tweets_df$created <- iconv(tweets_df$created, from = "ISO-8859-1", to = "UTF-8", sub = "")
+
+# Step 5: Remove rows where 'created' is invalid
+tweets_df <- tweets_df %>%
+filter(!is.na(created) & nchar(as.character(created)) > 1) # Remove empty or NA values
+```
+
+```{r}
+# Step 5: Clean 'created' and 'Created_At_Round' columns to handle invalid UTF-8
+tweets_df$created <- iconv(tweets_df$created, from = "ISO-8859-1", to = "UTF-8", sub = "")
+tweets_df$Created_At_Round <- iconv(tweets_df$Created_At_Round, from = "ISO-8859-1", to = "UTF-8", sub = "")
+```
+
+```{r}
+# Remove any invalid characters that are not part of dates (retain digits, colons, spaces, and hyphens)
+tweets_df$created <- gsub("[^0-9:\\-\\s]", "", tweets_df$created)
+tweets_df$Created_At_Round <- gsub("[^0-9:\\-\\s]", "", tweets_df$Created_At_Round)
+
+# Trim extra spaces
+tweets_df$created <- trimws(tweets_df$created)
+tweets_df$Created_At_Round <- trimws(tweets_df$Created_At_Round)
+```
+
+```{r}
+# Step 6: Parse cleaned 'created' and 'Created_At_Round' columns into date-time format
+library(lubridate)
+tweets_df$created <- parse_date_time(tweets_df$created, orders = c("ymd HMS", "mdy HMS", "dmy HMS"), tz = "UTC")
+tweets_df$Created_At_Round <- parse_date_time(tweets_df$Created_At_Round, orders = c("ymd HMS", "mdy HMS", "dmy HMS"), tz = "UTC")
+```
+
+```{r}
+# Clean the "tweetSource" column
+tweetsDF$tweetSource <- tweetsDF$tweetSource %>%
+str_remove_all("ifttt|dlvr.it|South Korea|JOHN YOON|Seoul|") %>% # Remove irrelevant characters
+str_squish()
+```
+
+```{r}
+# Step 7: Verify parsing results
+print(summary(tweets_df$created))
+print(summary(tweets_df$Created_At_Round))
+```
+
+```{r}
+# Optional: Check for rows with remaining NAs
+sum(is.na(tweets_df$created))
+sum(is.na(tweets_df$Created_At_Round))
+# Step 5: Parse 'created' and 'Created_At_Round' columns into date-time format
+tweets_df$created <- parse_date_time(tweets_df$created, orders = c("ymd HMS", "mdy HMS", "dmy HMS"), tz = "UTC")
+tweets_df$Created_At_Round <- parse_date_time(tweets_df$Created_At_Round, orders = c("ymd HMS", "mdy HMS"), tz = "UTC")
+```
+
+```{r}
+# Step 6: Check for failed parsing (NA values)
+sum(is.na(tweets_df$created)) # Count NAs in 'created'
+sum(is.na(tweets_df$Created_At_Round)) # Count NAs in 'Created_At_Round'
+```
+
+```{r}
+# Step 7: Clean the 'text' column
+tweets_df$text <- tweets_df$text %>%
+str_replace_all("#\\S+", "") %>% # Remove hashtags
+str_replace_all("@\\S+", "") %>% # Remove mentions
+str_replace_all("http\\S+", "") %>% # Remove URLs
+str_replace_all("[^[:alnum:][:space:]]", "") %>% # Remove special characters
+str_squish() # Remove extra spaces
+```
+
+```{r}
+# Step 8: Add derived columns (e.g., tweet length)
+tweets_df$tweetLength <- nchar(tweets_df$text)
+
+# Step 9: Verify the cleaned dataset
+str(tweets_df)
+summary(tweets_df)
+
+# Step 10: Final cleaned data output
+write.csv(tweets_df, "cleaned_tweetsDF.csv", row.names = FALSE)
+```
+
+```{r}
+# Load the cleaned dataset
+tweets_df <- read.csv("cleaned_tweetsDF.csv", stringsAsFactors = FALSE)
+
+# Inspect the data
+str(tweets_df)
+```
+
+#Visualization
+
+```{r}
+library(ggplot2)
+ggplot(tweets_df, aes(x = created, y = tweetLength)) +
+geom_point(color = "blue", alpha = 0.5) +
+labs(title = "Scatter Plot: Tweet Length Over Time",
+x = "Date Created",
+y = "Tweet Length (Number of Characters)") +
+theme_minimal()
+
+#The scatter plot shows that tweet lengths are consistently distributed over time, with most #tweets clustering near the upper character limit (140–280 characters). A few outliers with #very short tweet lengths are also visible, likely representing brief or automated messages. #No clear trend or variation in tweet length over time is apparent from the current #visualization.
+```
+
+```{r}
+# Count the top 10 tweet sources
+top_sources <- tweets_df %>%
+count(tweetSource, sort = TRUE) %>%
+top_n(10, wt = n)
+
+# Bar plot
+ggplot(top_sources, aes(x = reorder(tweetSource, n), y = n, fill = tweetSource)) +
+geom_bar(stat = "identity") + # Use stat = "identity" since y values are precomputed
+coord_flip() + # Horizontal bars
+labs(title = "Top 10 Tweet Sources",
+x = "Tweet Source",
+y = "Number of Tweets") +
+theme_minimal() +
+scale_fill_brewer(palette = "Set3", guide = "none")
+
+#The bar chart shows the top 10 sources of tweets, with "iPhone" and "Android" being the most #common platforms, contributing significantly more tweets than other sources. "Others" also #accounts for a notable number of tweets, while smaller sources like "iPad," "IFTTT," and #"dlvr.it" have minimal contributions. This suggests that mobile devices dominate tweet #generation, with iPhone slightly surpassing Android in usage.
+```
+
+```{r}
+# Create a new column for date (without time)
+tweets_df$date <- as.Date(tweets_df$created)
+
+# Count tweets per day
+tweets_by_date <- tweets_df %>%
+group_by(date) %>%
+summarise(tweet_count = n())
+
+# Line graph
+ggplot(tweets_by_date, aes(x = date, y = tweet_count)) +
+geom_line(color = "darkred", size = 1) +
+labs(title = "Line Graph: Number of Tweets Over Time",
+x = "Date",
+y = "Number of Tweets") +
+theme_minimal()
+
+#The bar graph depicts a positive linear trend in the number of tweets over time.
+#The number of tweets significantly increased between October 28th and October 29th.
+#The number of tweets continued to increase at a slower rate from October 29th to October #30th.
+```
+
+```{r}
+# Histogram
+ggplot(tweets_df, aes(x = tweetLength)) +
+geom_histogram(binwidth = 15, fill = "steelblue", color = "white") +
+labs(title = "Histogram: Distribution of Tweet Length",
+x = "Tweet Length (Number of Characters)",
+y = "Frequency") +
+theme_minimal()
+
+#The histogram shows the distribution of tweet lengths, with the x-axis representing #the tweet length in characters and the y-axis representing the frequency of tweets of #that length.
+#The majority of tweets have a length between 50 and 100 characters, with the peak #frequency occurring between 100 and 125 characters.
+#There is a smaller peak in the frequency between 0 and 25 characters, and a very #small number of tweets have lengths greater than 125 characters.
+```r
