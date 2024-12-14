@@ -320,7 +320,6 @@ product_urls <- c('https://www.amazon.com/MSI-GeForce-RTX-3060-12G/dp/B08WPRMVWB
 'https://www.amazon.com/ASUS-Graphics-DisplayPort-Axial-tech-Technology/dp/B0C7FNSHMQ/',
 'https://www.amazon.com/SURALLOW-Graphics-2048SP-Computer-Ports%EF%BC%88Style/dp/B0CMD6L4CJ/','https://www.amazon.com/Graphics-1000MHz-DirectX-Computer-Accessories/dp/B0BN6PF3NR/'
 )
-```
 
 
 scrape_reviews <- function(url) {
